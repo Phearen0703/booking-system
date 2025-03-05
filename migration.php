@@ -7,6 +7,11 @@ const CREATE_TABLE_ROLES = "CREATE TABLE IF NOT EXISTS roles (
     role_name VARCHAR(50) NOT NULL UNIQUE
 )";
 
+const INSERT_DEFAULT_ROLES = "INSERT IGNORE INTO roles (role_name) VALUES
+    ('admin'),
+    ('user'),
+    ('customer')";
+
 const CREATE_TABLE_USERS = "CREATE TABLE IF NOT EXISTS users (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -19,6 +24,8 @@ const CREATE_TABLE_USERS = "CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
 )";
+
+
 
 const CREATE_TABLE_HOTELS = "CREATE TABLE IF NOT EXISTS hotels (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -80,7 +87,7 @@ const CREATE_TABLE_SESSIONS = "CREATE TABLE IF NOT EXISTS sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )";
 
-// Array of queries
+// Execute table creation queries
 $queries = [
     CREATE_TABLE_ROLES,
     CREATE_TABLE_USERS,
@@ -92,7 +99,6 @@ $queries = [
     CREATE_TABLE_SESSIONS
 ];
 
-// Execute queries
 foreach ($queries as $query) {
     if ($conn->query($query) === TRUE) {
         echo "Table created successfully.<br>";
@@ -100,5 +106,13 @@ foreach ($queries as $query) {
         echo "Error creating table: " . $conn->error . "<br>";
     }
 }
+
+// Insert default roles
+if ($conn->query(INSERT_DEFAULT_ROLES) === TRUE) {
+    echo "Default roles inserted successfully.<br>";
+} else {
+    echo "Error inserting default roles: " . $conn->error . "<br>";
+}
+
 
 ?>

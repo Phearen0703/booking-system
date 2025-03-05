@@ -2,9 +2,11 @@
 // Include the configuration file
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/config.php");
 
-$user = $_SESSION['auth'];
-$user = $conn->query("SELECT * FROM users WHERE id = $user");
-$user = $user->fetch_object();
+
+$user_id = $_SESSION['auth'];
+
+$user = $conn->query("SELECT * FROM users WHERE id = $user_id");
+$users = $user->fetch_object();
 
 ?>
 <!DOCTYPE html>
@@ -90,9 +92,9 @@ $user = $user->fetch_object();
 
                             <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#"
                                 data-bs-toggle="dropdown">
-                                <img src="<?php echo $burl ?>/admin/public/img/<?php echo $user -> photo ?>"
+                                <img src="<?php echo $burl ?>/admin/public/img/<?php echo $users -> photo ?>"
                                     class="avatar img-fluid rounded me-1" alt="User photo" /> <span
-                                    class="text-dark"><?php echo $user -> first_name.' '. $user -> last_name?></span>
+                                    class="text-dark"><?php echo $users -> first_name.' '. $users -> last_name?></span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a class="dropdown-item" href="<?php echo $burl .'/admin/users/profile.php' ?>"><i class="align-middle me-1"

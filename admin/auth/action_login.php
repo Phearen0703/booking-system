@@ -17,6 +17,7 @@
 
             $_SESSION['login'] = true;
             $_SESSION['auth'] = $user->id;
+
             header('Location:' . $burl . '/admin/index.php');
             exit();
         }

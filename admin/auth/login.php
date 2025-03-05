@@ -2,14 +2,11 @@
 $title = "Login";
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/config.php");
 
-
-
-// Redirect to dashboard if already logged in
+// Redirect if already logged in
 if (isset($_SESSION['login']) && $_SESSION['login'] == true) {
     header('Location: ' . $burl . '/admin/index.php');
     exit;
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -20,78 +17,98 @@ if (isset($_SESSION['login']) && $_SESSION['login'] == true) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Booking System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
-            background-color: #f8f9fa;
+            background: linear-gradient(to right, #4e54c8, #8f94fb);
         }
-        .card {
-            border: none;
+        .login-container {
+            max-width: 400px;
+            background: white;
             border-radius: 15px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
         }
-        .btn-social {
-            background-color: #3b5998;
-            color: white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        .login-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4e54c8;
         }
-        .btn-social:hover {
-            opacity: 0.8;
+        .form-control {
+            border-radius: 10px;
+            padding: 10px 15px;
+        }
+        .input-group-text {
+            background: #f8f9fa;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #4e54c8;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #3d42b7;
+        }
+        .forgot-password {
+            font-size: 14px;
+            text-align: right;
+        }
+        .register-text {
+            text-align: center;
+            margin-top: 15px;
         }
     </style>
 </head>
 
-<body>
-    <section class="vh-100 d-flex align-items-center">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-10 col-lg-8">
-                    <div class="card p-4">
-                        <div class="row g-0">
+<body class="d-flex align-items-center vh-100">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-6">
+                <div class="login-container">
+                    <h3 class="login-title">BOOKING SYSTEM</h3>
 
-                        <?php if (isset($message)) echo "<div class='alert alert-info mt-3'>$message</div>"; ?>
+                    <?php if (isset($message)) echo "<div class='alert alert-info'>$message</div>"; ?>
 
-                        <h5 class="text-center fs-1">BOOKING SYSTEM</h5>
-                            <div class="col-md-6 text-center d-flex align-items-center justify-content-center">
-                            <img src="<?php echo $burl; ?>/admin/public/img/photos/img.png" class="img-fluid" alt="Illustration">
-                            </div>
-                            <div class="col-md-6 p-4">
-                                <form action="<?php echo $burl . '/admin/auth/action_login.php'?>" method="POST">
-                                    <div class="mb-3">
-                                        <label class="form-label">User Name</label>
-                                        <input type="text" name="user_name" class="form-control" placeholder="Enter a valid username" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Password</label>
-                                        <input type="password" name="password" class="form-control" placeholder="Password" required>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <div>
-                                            <input type="checkbox" class="form-check-input" id="rememberMe">
-                                            <label class="form-check-label" for="rememberMe">Remember me</label>
-                                        </div>
-                                        <a href="#" class="text-muted">Forgot password?</a>
-                                    </div>
-                                    <div class="text-center">
-                                        <button type="submit" class="btn btn-primary w-100">LOGIN</button>
-                                    </div>
-                                    <p class="text-center mt-3">Don't have an account? <a href="register.php" class="text-danger">Register</a></p>
-                                </form>
+                    <form action="<?php echo $burl . '/admin/auth/action_login.php' ?>" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">User Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" name="user_name" class="form-control" placeholder="Enter your username" required>
                             </div>
                         </div>
-                    </div>
-                    <div class="text-center mt-3 text-muted">
-                        Copyright © 2025. All rights reserved.
-                    </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Remember me</label>
+                            </div>
+                            <a href="#" class="text-muted forgot-password">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Login</button>
+
+                        <p class="register-text mt-3">Don't have an account? <a href="register.php" class="text-primary">Register</a></p>
+                    </form>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
