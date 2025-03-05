@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             if (in_array(strtolower($photo_ext), $allowed_ext)) {
                 $photo_new_name = time() . '_' . $photo_name;
-                $photo_upload_path = $_SERVER['DOCUMENT_ROOT'] . "/booking-system/public/img/" . $photo_new_name;
+                $photo_upload_path = $_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/public/img/" . $photo_new_name;
                 
                 // Move the uploaded file to the server directory
                 if (move_uploaded_file($photo_tmp, $photo_upload_path)) {

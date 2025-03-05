@@ -2,21 +2,18 @@
 
     include($_SERVER['DOCUMENT_ROOT']."/booking-system/config.php");
 
-    if(isset($_POST['username']) && isset($_POST['password'])){
+    if(isset($_POST['user_name']) && isset($_POST['password'])){
 
-        $username = $_POST['username'];
+        $username = $_POST['user_name'];
         $password = $_POST['password'];
 
-        $user = $conn ->query("SELECT id, username, password FROM users WHERE username = '$username' AND password = '$password'");
+        $user = $conn ->query("SELECT id, user_name, password FROM users WHERE user_name = '$username' AND password = '$password'");
 
         $user = $user -> fetch_object();
 
         if($user){
         
-            $_SESSION['message']=[
-                'status' => 'success',
-                'sms' => 'Login Seccussfully',
-            ];
+            $message = "Login Seccussfully";
 
             $_SESSION['login'] = true;
             $_SESSION['auth'] = $user->id;
@@ -25,9 +22,6 @@
         }
        
     }
-    $_SESSION['message']=[
-        'status' => 'error',
-        'sms' => 'Wrong username or password',
-    ];
+        $message = "Login Failed";
     header('Location:' . $burl . '/admin/auth/login.php');
 ?>
