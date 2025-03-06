@@ -3,10 +3,24 @@
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/config.php");
 
 
-$user_id = $_SESSION['auth'];
+// Check if user is logged in
+if (!isset($_SESSION['auth'])) {
+    header("Location: " . $burl . "/admin/auth/login.php"); // Redirect to login page
+    exit;
+}
 
+// Fetch user details
+$user_id = $_SESSION['auth'];
 $user = $conn->query("SELECT * FROM users WHERE id = $user_id");
-$users = $user->fetch_object();
+
+if ($user->num_rows > 0) {
+    $users = $user->fetch_object();
+} else {
+    // If user is not found in the database, destroy session and redirect
+    session_destroy();
+    header("Location: " . $burl . "/admin/auth/login.php");
+    exit;
+}
 
 ?>
 <!DOCTYPE html>
@@ -58,8 +72,8 @@ $users = $user->fetch_object();
                         </a>
                     </li>
 
-                    <li class="sidebar-item">
-                        <a class="sidebar-link" href="pages-sign-in.html">
+                    <li class="sidebar-item <?php echo $page == 'management' ? 'active' : '' ?>">
+                        <a class="sidebar-link" href="<?php echo $burl . "/admin/managements/index.php"?>">
                         <i class="fa-solid fa-list-check align-middle"></i> <span
                                 class="align-middle">Managment</span>
                         </a>

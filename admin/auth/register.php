@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_name = mysqli_real_escape_string($conn, $_POST['user_name']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $re_password = mysqli_real_escape_string($conn, $_POST['re_password']);
-    $role_id = 2; // Default role for regular users
+    $role_id = 3; // Default role for regular users
 
     // Validate passwords
     if ($password !== $re_password) {
@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user_id = mysqli_insert_id($conn);
 
             // Auto-login after registration
-            $_SESSION['user_id'] = $user_id;
+            $_SESSION['auth'] = $user_id;
             $_SESSION['user_name'] = $user_name;
             $_SESSION['role_id'] = $role_id;
             $_SESSION['photo'] = $photo_name;
