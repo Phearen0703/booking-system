@@ -4,11 +4,7 @@ $page = "management";
 
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/layouts/header.php");
 
-// Database Connection
-$conn = mysqli_connect("localhost", "root", "", "booking_system");
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+
 
 // Set records per page
 $limit = 10;
@@ -20,37 +16,42 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Query to fetch data
 $query = "SELECT 
-             hotels.id, 
-             hotels.name AS hotel_name, 
-             hotels.description, 
-             locations.province, 
-             locations.district, 
-             locations.city, 
-             hotels.created_at, 
-             CONCAT(users.first_name, ' ', users.last_name) AS owner_name, 
-             COUNT(hotel_rooms.id) AS total_rooms, 
-             IFNULL(AVG(ratings.rating), 0) AS avg_rating
-         FROM hotels
-         LEFT JOIN locations ON hotels.location_id = locations.id  -- Updated JOIN
-         LEFT JOIN users ON hotels.owner_id = users.id 
-         LEFT JOIN hotel_rooms ON hotels.id = hotel_rooms.hotel_id 
-         LEFT JOIN ratings ON hotels.id = ratings.hotel_id
-         GROUP BY hotels.id";
+            hotels.id, 
+            hotels.name AS hotel_name, 
+            hotels.description, 
+            locations.id AS location_id, 
+            cities.name AS city_name, 
+            districts.name AS district_name, 
+            provinces.name AS province_name, 
+            hotels.created_at, 
+            CONCAT(users.first_name, ' ', users.last_name) AS owner_name, 
+            COUNT(hotel_rooms.id) AS total_rooms, 
+            IFNULL(AVG(ratings.rating), 0) AS avg_rating
+        FROM hotels
+        LEFT JOIN locations ON hotels.location_id = locations.id
+        LEFT JOIN cities ON locations.city_id = cities.id
+        LEFT JOIN districts ON cities.district_id = districts.id
+        LEFT JOIN provinces ON districts.province_id = provinces.id
+        LEFT JOIN users ON hotels.owner_id = users.id 
+        LEFT JOIN hotel_rooms ON hotels.id = hotel_rooms.hotel_id 
+        LEFT JOIN ratings ON hotels.id = ratings.hotel_id";
 
 // If search term is provided, update the query to search
 if (!empty($search)) {
-    $query .= " HAVING hotel_name LIKE '%$search%' 
-                 OR locations.city LIKE '%$search%' 
-                 OR locations.district LIKE '%$search%' 
-                 OR locations.province LIKE '%$search%' 
-                 OR owner_name LIKE '%$search%'";
+    $query .= " WHERE hotels.name LIKE '%$search%' 
+                 OR cities.name LIKE '%$search%' 
+                 OR districts.name LIKE '%$search%' 
+                 OR provinces.name LIKE '%$search%' 
+                 OR CONCAT(users.first_name, ' ', users.last_name) LIKE '%$search%'";
 }
 
-$query .= " ORDER BY hotels.created_at DESC 
+// Add GROUP BY, ORDER BY, and pagination
+$query .= " GROUP BY hotels.id 
+            ORDER BY hotels.created_at DESC 
             LIMIT $limit OFFSET $offset";
 
+// Execute query
 $result = mysqli_query($conn, $query);
-
 if (!$result) {
     die("Query failed: " . mysqli_error($conn)); // Debugging
 }
@@ -64,12 +65,13 @@ $total_query = "SELECT COUNT(*) as total
 // If search term is provided, update the total query to include the search
 if (!empty($search)) {
     $total_query .= " WHERE hotels.name LIKE '%$search%' 
-                      OR locations.city LIKE '%$search%' 
-                      OR locations.district LIKE '%$search%' 
-                      OR locations.province LIKE '%$search%' 
+                      OR cities.name LIKE '%$search%' 
+                      OR districts.name LIKE '%$search%' 
+                      OR provinces.name LIKE '%$search%' 
                       OR CONCAT(users.first_name, ' ', users.last_name) LIKE '%$search%'";
 }
 
+// Execute total count query
 $total_result = mysqli_query($conn, $total_query);
 if (!$total_result) {
     die("Query failed: " . mysqli_error($conn)); // Debugging
@@ -78,6 +80,7 @@ if (!$total_result) {
 $total_row = mysqli_fetch_assoc($total_result);
 $total_records = $total_row['total'];
 $total_pages = ceil($total_records / $limit);
+
 
 ?>
 
@@ -116,7 +119,7 @@ $total_pages = ceil($total_records / $limit);
                     <tr>
                         <td><?php echo $no++; ?></td>
                         <td><?php echo htmlspecialchars($row['hotel_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['city'] . ', ' . $row['district'] . ', ' . $row['province']); ?></td>
+                        <td><?php echo htmlspecialchars($row['city_name'] . ', ' . $row['district_name'] . ', ' . $row['province_name']); ?></td>
                         <td>
                             <span class="badge bg-<?php echo $row['total_rooms'] > 0 ? 'success' : 'danger'; ?>">
                                 <?php echo $row['total_rooms'] > 0 ? 'Open' : 'Closed'; ?>

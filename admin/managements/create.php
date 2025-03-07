@@ -4,95 +4,147 @@ $page = "create";
 
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/layouts/header.php");
 
-// Database connection
-$conn = mysqli_connect("localhost", "root", "", "booking_system");
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
 
 // Handle form submission
+$success_message = $error_message = "";
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get the form data
-    $hotel_name = mysqli_real_escape_string($conn, $_POST['hotel_name']);
-    $description = mysqli_real_escape_string($conn, $_POST['description']);
-    $location_id = $_POST['location_id']; // Assuming location ID is selected
-    $owner_id = $_POST['owner_id']; // Assuming owner ID is selected
-    $created_at = date("Y-m-d H:i:s"); // Current date and time
+    if (!empty($_POST['hotel_name']) && !empty($_POST['description']) && !empty($_POST['location_id']) && !empty($_POST['owner_id'])) {
+        $hotel_name = trim($_POST['hotel_name']);
+        $description = trim($_POST['description']);
+        $location_id = $_POST['location_id'];
+        $owner_id = $_POST['owner_id'];
+        $created_at = date("Y-m-d H:i:s");
 
-    // Insert the new hotel data into the `hotels` table
-    $insert_query = "INSERT INTO hotels (name, description, location_id, owner_id, created_at) 
-                     VALUES ('$hotel_name', '$description', '$location_id', '$owner_id', '$created_at')";
+        $stmt = mysqli_prepare($conn, "INSERT INTO hotels (name, description, location_id, owner_id, created_at) VALUES (?, ?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt, "ssiss", $hotel_name, $description, $location_id, $owner_id, $created_at);
 
-    if (mysqli_query($conn, $insert_query)) {
-        $success_message = "Hotel created successfully!";
+        if (mysqli_stmt_execute($stmt)) {
+            $success_message = "Hotel created successfully!";
+        } else {
+            $error_message = "Error: " . mysqli_error($conn);
+        }
+        mysqli_stmt_close($stmt);
     } else {
-        $error_message = "Error: " . mysqli_error($conn);
+        $error_message = "Please fill in all required fields.";
     }
 }
 
-// Fetch the locations for the select options
-$locations_query = "SELECT * FROM locations";
+// Fetch locations
+$locations_query = "SELECT locations.id, cities.name AS city_name, districts.name AS district_name, provinces.name AS province_name
+                    FROM locations
+                    JOIN cities ON locations.city_id = cities.id
+                    JOIN districts ON cities.district_id = districts.id
+                    JOIN provinces ON districts.province_id = provinces.id";
 $locations_result = mysqli_query($conn, $locations_query);
 
-// Fetch all users (without role filter, modify if needed based on your schema)
-$users_query = "SELECT * FROM users"; // Removed WHERE clause for role
+// Fetch all users
+$users_query = "SELECT id, first_name, last_name FROM users";
 $users_result = mysqli_query($conn, $users_query);
 ?>
 
-<div class="container">
-    <h2>Create a New Hotel</h2>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <a href="<?php echo $burl . '/admin/managements/index.php'; ?>" class="btn btn-outline-danger mb-3">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="fw-bold mb-0">Create a New Hotel</h3>
+                </div>
+                <div class="card-body">
 
-    <?php
-    if (isset($success_message)) {
-        echo "<div class='alert alert-success'>$success_message</div>";
-    }
-    if (isset($error_message)) {
-        echo "<div class='alert alert-danger'>$error_message</div>";
-    }
-    ?>
+                    <?php if ($success_message): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <?php echo $success_message; ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php elseif ($error_message): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <?php echo $error_message; ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
 
-    <form action="create.php" method="POST">
-        <div class="form-group">
-            <label for="hotel_name">Hotel Name:</label>
-            <input type="text" id="hotel_name" name="hotel_name" class="form-control" required>
+                    <form action="create.php" method="POST" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="hotel_name" class="form-label fw-semibold">Hotel Name</label>
+                            <input type="text" id="hotel_name" name="hotel_name" class="form-control" required>
+                            <div class="invalid-feedback">Please enter a hotel name.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-semibold">Hotel Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="4"
+                                required></textarea>
+                            <div class="invalid-feedback">Please enter a description.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location_id" class="form-label fw-semibold">Location</label>
+                            <select name="location_id" id="location_id" class="form-select" required>
+                                <option value="">Select Location</option>
+                                <?php while ($location = mysqli_fetch_assoc($locations_result)): ?>
+                                    <option value="<?php echo $location['id']; ?>">
+                                        <?php echo htmlspecialchars($location['city_name'] . ', ' . $location['district_name'] . ', ' . $location['province_name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                            <div class="invalid-feedback">Please select a location.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="owner_id" class="form-label fw-semibold">Owner</label>
+                            <select name="owner_id" id="owner_id" class="form-select" required>
+                                <option value="">Select Owner</option>
+                                <?php while ($user = mysqli_fetch_assoc($users_result)): ?>
+                                    <option value="<?php echo $user['id']; ?>">
+                                        <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                            <div class="invalid-feedback">Please select an owner.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Create Hotel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="description">Hotel Description:</label>
-            <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="location_id">Location:</label>
-            <select name="location_id" id="location_id" class="form-control" required>
-                <option value="">Select Location</option>
-                <?php
-                while ($location = mysqli_fetch_assoc($locations_result)) {
-                    echo "<option value='" . $location['id'] . "'>" . $location['city'] . ", " . $location['district'] . ", " . $location['province'] . "</option>";
-                }
-                ?>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="owner_id">Owner:</label>
-            <select name="owner_id" id="owner_id" class="form-control" required>
-                <option value="">Select Owner</option>
-                <?php
-                while ($user = mysqli_fetch_assoc($users_result)) {
-                    echo "<option value='" . $user['id'] . "'>" . $user['first_name'] . " " . $user['last_name'] . "</option>";
-                }
-                ?>
-            </select>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Create Hotel</button>
-    </form>
-
-    <!-- Back Button -->
-    <a href="index.php" class="btn btn-secondary mt-3">Back</a>
+    </div>
 </div>
+
+<script>
+    // Bootstrap Form Validation
+    (function () {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
 
 <?php
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/layouts/footer.php");
 ?>
+
+<!-- SELECT 
+    locations.id AS location_id,
+    cities.name AS city_name,
+    districts.name AS district_name,
+    provinces.name AS province_name
+FROM locations
+JOIN cities ON locations.city_id = cities.id
+JOIN districts ON cities.district_id = districts.id
+JOIN provinces ON districts.province_id = provinces.id; -->
