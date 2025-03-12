@@ -4,8 +4,6 @@ $page = "management";
 
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/layouts/header.php");
 
-
-
 // Set records per page
 $limit = 10;
 $page_number = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page'] : 1;
@@ -14,44 +12,56 @@ $offset = ($page_number - 1) * $limit;
 // Handle search
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-// Query to fetch data
+// Prepare the base query
 $query = "SELECT 
-            hotels.id, 
-            hotels.name AS hotel_name, 
-            hotels.description, 
-            locations.id AS location_id, 
-            cities.name AS city_name, 
-            districts.name AS district_name, 
-            provinces.name AS province_name, 
-            hotels.created_at, 
-            CONCAT(users.first_name, ' ', users.last_name) AS owner_name, 
-            COUNT(hotel_rooms.id) AS total_rooms, 
-            IFNULL(AVG(ratings.rating), 0) AS avg_rating
-        FROM hotels
-        LEFT JOIN locations ON hotels.location_id = locations.id
-        LEFT JOIN cities ON locations.city_id = cities.id
-        LEFT JOIN districts ON cities.district_id = districts.id
-        LEFT JOIN provinces ON districts.province_id = provinces.id
-        LEFT JOIN users ON hotels.owner_id = users.id 
-        LEFT JOIN hotel_rooms ON hotels.id = hotel_rooms.hotel_id 
-        LEFT JOIN ratings ON hotels.id = ratings.hotel_id";
+    hotels.id, 
+    hotels.name AS hotel_name, 
+    hotels.description, 
+    locations.id AS location_id, 
+    cities.name AS city_name, 
+    districts.name AS district_name, 
+    provinces.name AS province_name, 
+    hotels.created_at, 
+    CONCAT(users.first_name, ' ', users.last_name) AS owner_name, 
+    COUNT(hotel_rooms.id) AS total_rooms, 
+    IFNULL(AVG(ratings.rating), 0) AS avg_rating,
+    GROUP_CONCAT(DISTINCT hotel_rooms.room_type) AS room_types
+FROM hotels
+LEFT JOIN locations ON hotels.location_id = locations.id
+LEFT JOIN cities ON locations.city_id = cities.id
+LEFT JOIN districts ON cities.district_id = districts.id
+LEFT JOIN provinces ON districts.province_id = provinces.id
+LEFT JOIN users ON hotels.owner_id = users.id 
+LEFT JOIN hotel_rooms ON hotels.id = hotel_rooms.hotel_id 
+LEFT JOIN ratings ON hotels.id = ratings.hotel_id
+";
 
 // If search term is provided, update the query to search
 if (!empty($search)) {
-    $query .= " WHERE hotels.name LIKE '%$search%' 
-                 OR cities.name LIKE '%$search%' 
-                 OR districts.name LIKE '%$search%' 
-                 OR provinces.name LIKE '%$search%' 
-                 OR CONCAT(users.first_name, ' ', users.last_name) LIKE '%$search%'";
+    $query .= "WHERE (hotels.name LIKE ? 
+                 OR cities.name LIKE ? 
+                 OR districts.name LIKE ? 
+                 OR provinces.name LIKE ? 
+                 OR CONCAT(users.first_name, ' ', users.last_name) LIKE ?)";
 }
 
-// Add GROUP BY, ORDER BY, and pagination
+// Add pagination
 $query .= " GROUP BY hotels.id 
             ORDER BY hotels.created_at DESC 
-            LIMIT $limit OFFSET $offset";
+            LIMIT ? OFFSET ?";
 
-// Execute query
-$result = mysqli_query($conn, $query);
+// Prepare and execute the query
+$stmt = $conn->prepare($query);
+
+if (!empty($search)) {
+    $search_term = "%" . $search . "%";
+    $stmt->bind_param("sssssi", $search_term, $search_term, $search_term, $search_term, $search_term, $limit, $offset);
+} else {
+    $stmt->bind_param("ii", $limit, $offset);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
 if (!$result) {
     die("Query failed: " . mysqli_error($conn)); // Debugging
 }
@@ -64,25 +74,32 @@ $total_query = "SELECT COUNT(*) as total
 
 // If search term is provided, update the total query to include the search
 if (!empty($search)) {
-    $total_query .= " WHERE hotels.name LIKE '%$search%' 
-                      OR cities.name LIKE '%$search%' 
-                      OR districts.name LIKE '%$search%' 
-                      OR provinces.name LIKE '%$search%' 
-                      OR CONCAT(users.first_name, ' ', users.last_name) LIKE '%$search%'";
+    $total_query .= " WHERE hotels.name LIKE ? 
+                      OR cities.name LIKE ? 
+                      OR districts.name LIKE ? 
+                      OR provinces.name LIKE ? 
+                      OR CONCAT(users.first_name, ' ', users.last_name) LIKE ?";
 }
 
-// Execute total count query
-$total_result = mysqli_query($conn, $total_query);
+// Prepare and execute the total count query
+$total_stmt = $conn->prepare($total_query);
+
+if (!empty($search)) {
+    $total_stmt->bind_param("ssss", $search_term, $search_term, $search_term, $search_term);
+}
+
+$total_stmt->execute();
+$total_result = $total_stmt->get_result();
 if (!$total_result) {
     die("Query failed: " . mysqli_error($conn)); // Debugging
 }
 
-$total_row = mysqli_fetch_assoc($total_result);
+$total_row = $total_result->fetch_assoc();
 $total_records = $total_row['total'];
 $total_pages = ceil($total_records / $limit);
 
-
 ?>
+
 
 
 <div class="d-flex justify-content-between align-items-center">
@@ -105,6 +122,7 @@ $total_pages = ceil($total_records / $limit);
             <tr>
                 <th>#</th>
                 <th>Hotel Name</th>
+                <th>Room Type</th>
                 <th>Location</th>
                 <th>Status</th>
                 <th>Owner</th>
@@ -119,6 +137,7 @@ $total_pages = ceil($total_records / $limit);
                     <tr>
                         <td><?php echo $no++; ?></td>
                         <td><?php echo htmlspecialchars($row['hotel_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['room_types']); ?></td>
                         <td><?php echo htmlspecialchars($row['city_name'] . ', ' . $row['district_name'] . ', ' . $row['province_name']); ?></td>
                         <td>
                             <span class="badge bg-<?php echo $row['total_rooms'] > 0 ? 'success' : 'danger'; ?>">

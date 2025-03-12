@@ -72,12 +72,32 @@ if ($user->num_rows > 0) {
                         </a>
                     </li>
 
-                    <li class="sidebar-item <?php echo $page == 'management' ? 'active' : '' ?>">
-                        <a class="sidebar-link" href="<?php echo $burl . "/admin/managements/index.php"?>">
-                        <i class="fa-solid fa-list-check align-middle"></i> <span
-                                class="align-middle">Managment</span>
+                    <li class="sidebar-item <?php echo ($page == 'management' || $page == 'rooms') ? 'active' : ''; ?>">
+                        <a class="sidebar-link" href="#managementMenu" data-bs-toggle="collapse" aria-expanded="false">
+                            <i class="fa-solid fa-list-check align-middle"></i> 
+                            <span class="align-middle">Management</span>
                         </a>
+                        <ul id="managementMenu" class="collapse list-unstyled <?php echo ($page == 'management' || $page == 'rooms') ? 'show' : ''; ?>">
+                            <li>
+                                <a class="sidebar-link <?php echo $page == 'management' ? 'active' : ''; ?>" href="<?php echo $burl . "/admin/managements/index.php"; ?>">
+                                    <i class="fa-solid fa-hotel align-middle"></i> <span class="align-middle">Hotel</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-link <?php echo $page == 'rooms' ? 'active' : ''; ?>" href="<?php echo $burl . "/admin/managements/rooms/index.php"; ?>">
+                                    <i class="fa-solid fa-bed align-middle"></i> <span class="align-middle">Room</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-link <?php echo $page == 'locations' ? 'active' : ''; ?>" href="<?php echo $burl . "/admin/managements/locations/index.php"; ?>">
+                                    <i class="fa-solid fa-file align-middle"></i> <span class="align-middle">Location</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
+
+
+
 
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="pages-sign-up.html">

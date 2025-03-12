@@ -9,11 +9,11 @@ include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/layouts/header.php");
 $success_message = $error_message = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (!empty($_POST['hotel_name']) && !empty($_POST['description']) && !empty($_POST['location_id']) && !empty($_POST['owner_id'])) {
+    if (!empty($_POST['hotel_name']) && !empty($_POST['description']) && !empty($_POST['location_id'])) {
         $hotel_name = trim($_POST['hotel_name']);
         $description = trim($_POST['description']);
         $location_id = $_POST['location_id'];
-        $owner_id = $_POST['owner_id'];
+        $owner_id = $_SESSION['auth'];
         $created_at = date("Y-m-d H:i:s");
 
         $stmt = mysqli_prepare($conn, "INSERT INTO hotels (name, description, location_id, owner_id, created_at) VALUES (?, ?, ?, ?, ?)");
@@ -92,19 +92,6 @@ $users_result = mysqli_query($conn, $users_query);
                                 <?php endwhile; ?>
                             </select>
                             <div class="invalid-feedback">Please select a location.</div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="owner_id" class="form-label fw-semibold">Owner</label>
-                            <select name="owner_id" id="owner_id" class="form-select" required>
-                                <option value="">Select Owner</option>
-                                <?php while ($user = mysqli_fetch_assoc($users_result)): ?>
-                                    <option value="<?php echo $user['id']; ?>">
-                                        <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-                            <div class="invalid-feedback">Please select an owner.</div>
                         </div>
 
                         <div class="d-grid">
