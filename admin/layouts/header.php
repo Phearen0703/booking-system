@@ -3,10 +3,24 @@
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/config.php");
 
 
-$user_id = $_SESSION['auth'];
+// Check if user is logged in
+if (!isset($_SESSION['auth'])) {
+    header("Location: " . $burl . "/admin/auth/login.php"); // Redirect to login page
+    exit;
+}
 
+// Fetch user details
+$user_id = $_SESSION['auth'];
 $user = $conn->query("SELECT * FROM users WHERE id = $user_id");
-$users = $user->fetch_object();
+
+if ($user->num_rows > 0) {
+    $users = $user->fetch_object();
+} else {
+    // If user is not found in the database, destroy session and redirect
+    session_destroy();
+    header("Location: " . $burl . "/admin/auth/login.php");
+    exit;
+}
 
 ?>
 <!DOCTYPE html>
@@ -58,12 +72,32 @@ $users = $user->fetch_object();
                         </a>
                     </li>
 
-                    <li class="sidebar-item">
-                        <a class="sidebar-link" href="pages-sign-in.html">
-                        <i class="fa-solid fa-list-check align-middle"></i> <span
-                                class="align-middle">Managment</span>
+                    <li class="sidebar-item <?php echo ($page == 'management' || $page == 'rooms') ? 'active' : ''; ?>">
+                        <a class="sidebar-link" href="#managementMenu" data-bs-toggle="collapse" aria-expanded="false">
+                            <i class="fa-solid fa-list-check align-middle"></i> 
+                            <span class="align-middle">Management</span>
                         </a>
+                        <ul id="managementMenu" class="collapse list-unstyled <?php echo ($page == 'management' || $page == 'rooms') ? 'show' : ''; ?>">
+                            <li>
+                                <a class="sidebar-link <?php echo $page == 'management' ? 'active' : ''; ?>" href="<?php echo $burl . "/admin/managements/index.php"; ?>">
+                                    <i class="fa-solid fa-hotel align-middle"></i> <span class="align-middle">Hotel</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-link <?php echo $page == 'rooms' ? 'active' : ''; ?>" href="<?php echo $burl . "/admin/managements/rooms/index.php"; ?>">
+                                    <i class="fa-solid fa-bed align-middle"></i> <span class="align-middle">Room</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-link <?php echo $page == 'locations' ? 'active' : ''; ?>" href="<?php echo $burl . "/admin/managements/locations/index.php"; ?>">
+                                    <i class="fa-solid fa-file align-middle"></i> <span class="align-middle">Location</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
+
+
+
 
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="pages-sign-up.html">

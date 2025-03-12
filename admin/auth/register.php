@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_name = mysqli_real_escape_string($conn, $_POST['user_name']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $re_password = mysqli_real_escape_string($conn, $_POST['re_password']);
-    $role_id = mysqli_real_escape_string($conn, $_POST['role_id']);
+    $role_id = 2; // Default role for regular users
 
     // Check if passwords match
     if ($password !== $re_password) {
@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Get user ID of the newly registered user
             $user_id = mysqli_insert_id($conn);
 
-            // Store user details in session for auto-login
+            // Auto-login after registration
             $_SESSION['user_id'] = $user_id;
             $_SESSION['user_name'] = $user_name;
             $_SESSION['role_id'] = $role_id;

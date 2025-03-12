@@ -63,73 +63,107 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 ?>
 
-<a href="<?php echo $burl . '/admin/users/index.php' ?>" class="btn btn-danger"><i class="fa-solid fa-reply"></i>
-    Back</a>
-<div class="mt-3">
-    <form method="POST" enctype="multipart/form-data">
-        <div class="card">
-            <div class="card-header fs-4"><i class="fa-solid fa-plus"></i> Create User</div>
-            <div class="card-body">
+
+<div class="container">
+<a href="<?php echo $burl . '/admin/users/index.php' ?>" class="btn btn-outline-danger mb-3">
+    <i class="fa-solid fa-reply"></i> Back
+</a>
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white fs-5 d-flex align-items-center">
+            <i class="fa-solid fa-user-plus me-2"></i> Create User
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="row">
+                    <!-- Left Column -->
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">First Name</label>
-                            <input type="text" name="first_name" class="form-control" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" name="first_name" class="form-control" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Last Name</label>
-                            <input type="text" name="last_name" class="form-control" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" name="last_name" class="form-control" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Contact</label>
-                            <input type="text" name="contact" class="form-control" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
+                                <input type="text" name="contact" class="form-control" required>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="photo">Photo</label>
-                            <input type="file" accept="image/*" id="photo" name="photo" class="form-control" required>
+                            <label class="form-label">Photo</label>
+                            <input type="file" accept="image/*" name="photo" class="form-control" required>
                         </div>
                     </div>
+
+                    <!-- Right Column -->
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">User Name</label>
-                            <input type="text" name="user_name" class="form-control" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-user-tag"></i></span>
+                                <input type="text" name="user_name" class="form-control" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                                <input type="password" name="password" class="form-control" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Re-Password</label>
-                            <input type="password" name="re_password" class="form-control" required>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                                <input type="password" name="re_password" class="form-control" required>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <div class="form-group">
-                                <label class="form-label">Role</label>
-                                <div class="d-flex">
-                                    <select name="role_id" class="form-select me-2" required>
-                                        <option value="">Select Role</option>
-                                        <?php
-                                        $query = "SELECT id, role_name FROM roles";
-                                        $roles = mysqli_query($conn, $query);
+                            <label class="form-label">Role</label>
+                            <div class="d-flex">
+                                <select name="role_id" class="form-select me-2" required>
+                                    <option value="">Select Role</option>
+                                    <?php
+                                    $query = "SELECT id, role_name FROM roles";
+                                    $roles = mysqli_query($conn, $query);
 
-                                        while ($row = mysqli_fetch_assoc($roles)) {
-                                            echo "<option value='{$row['id']}'>{$row['role_name']}</option>";
-                                        }
-                                        ?>
-                                    </select>
-                                    <a href="<?php echo $burl . '/admin/users/roles/index.php'; ?>" class="btn btn-primary">
-                                        <i class="fa-solid fa-plus"></i>
-                                    </a>
-                                </div>
+                                    while ($row = mysqli_fetch_assoc($roles)) {
+                                        echo "<option value='{$row['id']}'>{$row['role_name']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <a href="<?php echo $burl . '/admin/users/roles/index.php'; ?>" class="btn btn-success">
+                                    <i class="fa-solid fa-plus"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Add User</button>
-                <?php if (isset($message)) echo "<div class='alert alert-info mt-3'>$message</div>"; ?>
-            </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-user-plus"></i> Add User
+                    </button>
+                </div>
+
+                <!-- Message Display -->
+                <?php if (isset($message)) : ?>
+                    <div class="alert alert-info mt-3 text-center"><?php echo $message; ?></div>
+                <?php endif; ?>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
+
 
 <?php include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/layouts/footer.php"); ?>
