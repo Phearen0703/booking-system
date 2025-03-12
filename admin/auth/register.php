@@ -6,25 +6,24 @@ include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/config.php");
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
     $first_name = mysqli_real_escape_string($conn, $_POST['first_name']);
     $last_name = mysqli_real_escape_string($conn, $_POST['last_name']);
     $contact = mysqli_real_escape_string($conn, $_POST['contact']);
     $user_name = mysqli_real_escape_string($conn, $_POST['user_name']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $re_password = mysqli_real_escape_string($conn, $_POST['re_password']);
-    $role_id = 2; // Default role for regular users
+    $role_id = mysqli_real_escape_string($conn, $_POST['role_id']);
 
-    // Validate passwords
+    // Check if passwords match
     if ($password !== $re_password) {
         $message = "<div class='alert alert-danger'>Passwords do not match!</div>";
     } else {
-        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+        $hashed_password = password_hash($password, PASSWORD_BCRYPT); // Secure password
 
-        // Handle image upload
+        // Image Upload Handling
         $photo_name = "";
         if (!empty($_FILES['photo']['name'])) {
-            $photo_name = time() . "_" . $_FILES['photo']['name']; 
+            $photo_name = time() . "_" . $_FILES['photo']['name']; // Unique filename
             $photo_tmp = $_FILES['photo']['tmp_name'];
             $photo_path = $_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/public/img/" . $photo_name;
 
@@ -33,21 +32,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // Insert user into the database
+        // Insert User into Database
         $query = "INSERT INTO users (first_name, last_name, contact, user_name, password, role_id, photo) 
                   VALUES ('$first_name', '$last_name', '$contact', '$user_name', '$hashed_password', '$role_id', '$photo_name')";
 
         if (mysqli_query($conn, $query)) {
+            // Get user ID of the newly registered user
             $user_id = mysqli_insert_id($conn);
 
-            // Auto-login after registration
+            // Store user details in session for auto-login
             $_SESSION['user_id'] = $user_id;
             $_SESSION['user_name'] = $user_name;
             $_SESSION['role_id'] = $role_id;
             $_SESSION['photo'] = $photo_name;
-            $_SESSION['login'] = true;
 
-            header("Location: " . $burl . "/admin/index.php");
+            // Redirect to dashboard after login
+            header("Location: /booking-system/admin/dashboard.php");
             exit();
         } else {
             $message = "<div class='alert alert-danger'>Error: " . mysqli_error($conn) . "</div>";
