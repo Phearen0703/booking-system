@@ -16,8 +16,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $owner_id = $_SESSION['auth'];
         $created_at = date("Y-m-d H:i:s");
 
-        $stmt = mysqli_prepare($conn, "INSERT INTO hotels (name, description, location_id, owner_id, created_at) VALUES (?, ?, ?, ?, ?)");
-        mysqli_stmt_bind_param($stmt, "ssiss", $hotel_name, $description, $location_id, $owner_id, $created_at);
+        $photo = '';
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
+            // Validate image upload
+            $photo_tmp = $_FILES['photo']['tmp_name'];
+            $photo_name = $_FILES['photo']['name'];
+            $photo_ext = pathinfo($photo_name, PATHINFO_EXTENSION);
+            $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+            
+            if (in_array(strtolower($photo_ext), $allowed_ext)) {
+                $photo_new_name = time() . '_' . $photo_name;
+                $photo_upload_path = $_SERVER['DOCUMENT_ROOT'] . "/booking-system/admin/public/img/hotel/" . $photo_new_name;
+                
+                // Move the uploaded file to the server directory
+                if (move_uploaded_file($photo_tmp, $photo_upload_path)) {
+                    $photo = $photo_new_name; // Store the file name for database
+                } else {
+                    $message = "Failed to upload photo.";
+                }
+            } else {
+                $message = "Invalid file type for photo. Allowed types: jpg, jpeg, png, gif.";
+            }
+        } else {
+            $message = "Please upload a photo.";
+        }
+
+        $stmt = mysqli_prepare($conn, "INSERT INTO hotels (name, description, location_id, owner_id, created_at, image) VALUES (?, ?, ?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt, "ssisss", $hotel_name, $description, $location_id, $owner_id, $created_at, $photo);
 
         if (mysqli_stmt_execute($stmt)) {
             $success_message = "Hotel created successfully!";
@@ -67,7 +92,7 @@ $users_result = mysqli_query($conn, $users_query);
                         </div>
                     <?php endif; ?>
 
-                    <form action="create.php" method="POST" class="needs-validation" novalidate>
+                    <form action="create.php" method="POST" class="needs-validation" novalidate enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="hotel_name" class="form-label fw-semibold">Hotel Name</label>
                             <input type="text" id="hotel_name" name="hotel_name" class="form-control" required>
@@ -92,6 +117,11 @@ $users_result = mysqli_query($conn, $users_query);
                                 <?php endwhile; ?>
                             </select>
                             <div class="invalid-feedback">Please select a location.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Photo</label>
+                            <input type="file" accept="image/*" name="photo" class="form-control" required>
                         </div>
 
                         <div class="d-grid">
