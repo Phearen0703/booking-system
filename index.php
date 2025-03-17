@@ -131,16 +131,16 @@
             })
             .catch(error => console.error("Error fetching hotels:", error));
 
-        function loadHotels(hotels) {
-            const hotelList = document.getElementById("hotel-list");
-            const carouselHotels = document.getElementById("carousel-hotels");
-            hotelList.innerHTML = "";
-            carouselHotels.innerHTML = "";
+            function loadHotels(hotels) {
+    const hotelList = document.getElementById("hotel-list");
+    const carouselHotels = document.getElementById("carousel-hotels");
+    hotelList.innerHTML = "";
+    carouselHotels.innerHTML = "";
 
-            hotels.forEach((hotel, index) => {
-                let stars = '★'.repeat(hotel.rating) + '☆'.repeat(5 - hotel.rating);
+    hotels.forEach((hotel, index) => {
+        let stars = '★'.repeat(hotel.rating) + '☆'.repeat(5 - hotel.rating);
 
-                hotelList.innerHTML += `
+        hotelList.innerHTML += `
             <div class="col-md-4 mb-4">
                 <div class="card shadow-lg">
                     <img src="${hotel.image}" class="card-img-top" alt="Hotel Image">
@@ -149,12 +149,12 @@
                         <p class="card-text">📍 ${hotel.location}</p>
                         <p class="card-text">💲 ${hotel.price}</p>
                         <p class="star-rating">${stars}</p>
-                        <button class="btn btn-primary">Book Now</button>
+                        <button class="btn btn-primary book-btn" data-id="${hotel.id}" data-name="${hotel.name}">Book Now</button>
                     </div>
                 </div>
             </div>`;
 
-                carouselHotels.innerHTML += `
+        carouselHotels.innerHTML += `
             <div class="carousel-item ${index === 0 ? 'active' : ''}">
                 <img src="${hotel.image}" class="d-block w-100" alt="Hotel Image">
                 <div class="carousel-caption">
@@ -162,8 +162,19 @@
                     <p>${stars}</p>
                 </div>
             </div>`;
-            });
-        }
+    });
+
+    // Attach event listeners to the "Book Now" buttons
+    document.querySelectorAll('.book-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            document.getElementById("hotelId").value = this.getAttribute("data-id");
+            document.getElementById("hotelName").value = this.getAttribute("data-name");
+            var bookingModal = new bootstrap.Modal(document.getElementById("bookingModal"));
+            bookingModal.show();
+        });
+    });
+}
+
 
 
         //filter feature
@@ -243,6 +254,47 @@ function loadDistricts(city_id) {
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- modal for booking info -->
+
+    <!-- Booking Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookingModalLabel">Book Hotel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bookingForm">
+                    <input type="hidden" id="hotelId" name="hotelId">
+                    <div class="mb-3">
+                        <label for="hotelName" class="form-label">Hotel Name</label>
+                        <input type="text" class="form-control" id="hotelName" name="hotelName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="fullName" name="fullName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="checkInDate" class="form-label">Check-in Date</label>
+                        <input type="date" class="form-control" id="checkInDate" name="checkInDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="checkOutDate" class="form-label">Check-out Date</label>
+                        <input type="date" class="form-control" id="checkOutDate" name="checkOutDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Confirm Booking</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 
 </html>
