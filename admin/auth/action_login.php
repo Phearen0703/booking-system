@@ -7,7 +7,7 @@
         $username = $_POST['user_name'];
         $password = $_POST['password'];
 
-        $user = $conn ->query("SELECT id, user_name, password FROM users WHERE user_name = '$username' AND password = '$password'");
+        $user = $conn ->query("SELECT id, user_name, role_id, password FROM users WHERE user_name = '$username' AND password = '$password'");
 
         $user = $user -> fetch_object();
 
@@ -17,6 +17,9 @@
 
             $_SESSION['login'] = true;
             $_SESSION['auth'] = $user->id;
+            $_SESSION['role_id'] = $user->role_id; 
+
+
 
             header('Location:' . $burl . '/admin/index.php');
             exit();
@@ -25,4 +28,4 @@
     }
         $message = "Login Failed";
     header('Location:' . $burl . '/admin/auth/login.php');
-?>
+?> 

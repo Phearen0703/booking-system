@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_name = mysqli_real_escape_string($conn, $_POST['user_name']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $re_password = mysqli_real_escape_string($conn, $_POST['re_password']);
-    $role_id = 2; // Default role for regular users
+    $role_id = 3; // Default role for regular users
 
     // Check if passwords match
     if ($password !== $re_password) {

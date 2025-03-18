@@ -1,7 +1,8 @@
 <?php
 // Include the configuration file
 include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/config.php");
-
+include($_SERVER['DOCUMENT_ROOT'] . "/booking-system/protect.php");
+protect_admin_folder();
 
 // Check if user is logged in
 if (!isset($_SESSION['auth'])) {

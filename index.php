@@ -1,3 +1,10 @@
+<?php
+require_once("protect.php");
+protect_guest_folder();
+
+var_dump($SESSION['role_id']) ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -59,6 +66,74 @@
             object-fit: cover;
             border-radius: 10px;
         }
+
+        /* Modal Styling */
+        .modal-content {
+            background-color: #f9f9f9;
+            border-radius: 12px; /* Rounded corners for modern feel */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            overflow: hidden; /* Clean edges */
+        }
+
+        .modal-header {
+            background-color: #fff;
+            border-bottom: 0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-body {
+            background-color: #fff;
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #777;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px; /* Rounded input fields */
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            padding: 0.75rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25); /* Blue focus ring */
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        /* Button shadow effect */
+        .shadow-sm {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive Design for Modal */
+        @media (max-width: 768px) {
+            .modal-dialog {
+                max-width: 90%;
+            }
+        }
+
     </style>
 </head>
 
@@ -122,16 +197,19 @@
         <p>&copy; 2025 Booking System. All Rights Reserved.</p>
     </footer>
 
-    <script>
-        fetch("server/hotels.php")
-            .then(response => response.json())
-            .then(data => {
-                console.log(data); // Check the response in console
-                loadHotels(data);
-            })
-            .catch(error => console.error("Error fetching hotels:", error));
 
-            function loadHotels(hotels) {
+
+    <script>
+            // Fetch hotels and display them
+fetch("server/hotels.php")
+    .then(response => response.json())
+    .then(data => {
+        console.log(data); // Check the response in console
+        loadHotels(data);
+    })
+    .catch(error => console.error("Error fetching hotels:", error));
+
+function loadHotels(hotels) {
     const hotelList = document.getElementById("hotel-list");
     const carouselHotels = document.getElementById("carousel-hotels");
     hotelList.innerHTML = "";
@@ -164,136 +242,133 @@
             </div>`;
     });
 
-    // Attach event listeners to the "Book Now" buttons
+    // Attach event listeners AFTER hotels are loaded
+    attachBookEventListeners();
+}
+
+// Function to attach "Book Now" button event listeners
+function attachBookEventListeners() {
     document.querySelectorAll('.book-btn').forEach(button => {
         button.addEventListener('click', function () {
-            document.getElementById("hotelId").value = this.getAttribute("data-id");
-            document.getElementById("hotelName").value = this.getAttribute("data-name");
-            var bookingModal = new bootstrap.Modal(document.getElementById("bookingModal"));
-            bookingModal.show();
+            fetch("server/check_login.php")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.loggedIn) {
+                        alert("You must be logged in to book.");
+                        window.location.href = "/booking-system/admin/auth/login.php";
+                    } else {
+                        // Fetch hotel data attributes from the clicked button
+                        const hotelName = this.getAttribute("data-name");
+                        const hotelId = this.getAttribute("data-id");
+                        const location = this.getAttribute("data-location");
+                        const contact = this.getAttribute("data-contact");
+
+                        // Set values in the modal
+                        document.getElementById("hotelName").value = hotelName;
+                        document.getElementById("hotelId").value = hotelId;
+                        document.getElementById("location").value = location;
+                        document.getElementById("contact").value = contact;
+
+                        // Fetch room types for the hotel and populate the dropdown
+                        fetch(`server/get_room_types.php?hotel_id=${hotelId}`)
+                            .then(response => response.json())
+                            .then(roomTypes => {
+                                const roomTypeSelect = document.getElementById("roomType");
+                                roomTypeSelect.innerHTML = ''; // Clear any existing options
+                                
+                                // Add the default "Select Room Type" option
+                                const defaultOption = document.createElement("option");
+                                defaultOption.value = '';
+                                defaultOption.textContent = "Select Room Type";
+                                roomTypeSelect.appendChild(defaultOption);
+                                
+                                // Populate the dropdown with room types
+                                roomTypes.forEach(room => {
+                                    const option = document.createElement("option");
+                                    option.value = room.room_type;
+                                    option.textContent = room.room_type;
+                                    roomTypeSelect.appendChild(option);
+                                });
+                            })
+                            .catch(error => console.error("Error fetching room types:", error));
+
+                        // Show the modal using Bootstrap
+                        const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+                        bookingModal.show();
+                    }
+                })
+                .catch(error => console.error("Error checking login:", error));
         });
     });
 }
 
 
 
-        //filter feature
-        document.addEventListener("DOMContentLoaded", function () {
-    loadProvinces();
-
-    document.getElementById("filter-province").addEventListener("change", function () {
-        loadCities(this.value);
-    });
-
-    document.getElementById("filter-city").addEventListener("change", function () {
-        loadDistricts(this.value);
-    });
-});
-
-// Fetch all provinces
-function loadProvinces() {
-    fetch("server/get_locations.php?type=provinces")
-        .then(response => response.json())
-        .then(provinces => {
-            const provinceDropdown = document.getElementById("filter-province");
-            provinceDropdown.innerHTML = `<option value="">Filter by Province</option>`;
-            provinces.forEach(province => {
-                provinceDropdown.innerHTML += `<option value="${province.id}">${province.name}</option>`;
-            });
-        })
-        .catch(error => console.error("Error fetching provinces:", error));
-}
-
-// Fetch cities based on selected province
-function loadCities(province_id) {
-    const cityDropdown = document.getElementById("filter-city");
-    const districtDropdown = document.getElementById("filter-district");
-
-    if (!province_id) {
-        cityDropdown.innerHTML = `<option value="">Filter by City</option>`;
-        cityDropdown.disabled = true;
-        districtDropdown.innerHTML = `<option value="">Filter by District</option>`;
-        districtDropdown.disabled = true;
-        return;
-    }
-
-    fetch(`server/get_locations.php?type=cities&province_id=${province_id}`)
-        .then(response => response.json())
-        .then(cities => {
-            cityDropdown.innerHTML = `<option value="">Filter by City</option>`;
-            cities.forEach(city => {
-                cityDropdown.innerHTML += `<option value="${city.id}">${city.name}</option>`;
-            });
-            cityDropdown.disabled = false;
-        })
-        .catch(error => console.error("Error fetching cities:", error));
-}
-
-// Fetch districts based on selected city
-function loadDistricts(city_id) {
-    const districtDropdown = document.getElementById("filter-district");
-
-    if (!city_id) {
-        districtDropdown.innerHTML = `<option value="">Filter by District</option>`;
-        districtDropdown.disabled = true;
-        return;
-    }
-
-    fetch(`server/get_locations.php?type=districts&city_id=${city_id}`)
-        .then(response => response.json())
-        .then(districts => {
-            districtDropdown.innerHTML = `<option value="">Filter by District</option>`;
-            districts.forEach(district => {
-                districtDropdown.innerHTML += `<option value="${district.id}">${district.name}</option>`;
-            });
-            districtDropdown.disabled = false;
-        })
-        .catch(error => console.error("Error fetching districts:", error));
-}
-
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- modal for booking info -->
 
-    <!-- Booking Modal -->
+<!-- Booking Modal -->
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="bookingModalLabel">Book Hotel</h5>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-dark" id="bookingModalLabel">Book Your Stay</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body px-4 py-3">
                 <form id="bookingForm">
                     <input type="hidden" id="hotelId" name="hotelId">
+
+                    <!-- Hotel Name -->
                     <div class="mb-3">
-                        <label for="hotelName" class="form-label">Hotel Name</label>
-                        <input type="text" class="form-control" id="hotelName" name="hotelName" readonly>
+                        <label for="hotelName" class="form-label text-muted">Hotel Name</label>
+                        <input type="text" class="form-control shadow-sm" id="hotelName" name="hotelName" readonly>
                     </div>
+
+
+                    <!-- Room Type -->
                     <div class="mb-3">
-                        <label for="fullName" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="fullName" name="fullName" required>
+                        <label for="roomType" class="form-label text-muted">Room Type</label>
+                        <select class="form-select shadow-sm" id="roomType" name="roomType" required>
+                            <!-- Options will be populated dynamically here -->
+                        </select>
                     </div>
+
+
+                    <!-- Location -->
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <label for="location" class="form-label text-muted">Location</label>
+                        <input type="text" class="form-control shadow-sm" id="location" name="location" readonly>
                     </div>
+
+                    <!-- Contact -->
                     <div class="mb-3">
-                        <label for="checkInDate" class="form-label">Check-in Date</label>
-                        <input type="date" class="form-control" id="checkInDate" name="checkInDate" required>
+                        <label for="contact" class="form-label text-muted">Contact</label>
+                        <input type="text" class="form-control shadow-sm" id="contact" name="contact" readonly>
                     </div>
+
+                    <!-- Check-in Date -->
                     <div class="mb-3">
-                        <label for="checkOutDate" class="form-label">Check-out Date</label>
-                        <input type="date" class="form-control" id="checkOutDate" name="checkOutDate" required>
+                        <label for="checkInDate" class="form-label text-muted">Check-in Date</label>
+                        <input type="date" class="form-control shadow-sm" id="checkInDate" name="checkInDate" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Confirm Booking</button>
+
+                    <!-- Check-out Date -->
+                    <div class="mb-3">
+                        <label for="checkOutDate" class="form-label text-muted">Check-out Date</label>
+                        <input type="date" class="form-control shadow-sm" id="checkOutDate" name="checkOutDate" required>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm">Confirm Booking</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 
 </body>
 
