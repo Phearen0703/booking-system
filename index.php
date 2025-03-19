@@ -1,10 +1,3 @@
-<?php
-require_once("protect.php");
-protect_guest_folder();
-
-var_dump($SESSION['role_id']) ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -156,14 +149,20 @@ var_dump($SESSION['role_id']) ?>
                     </select>
                     <button class="btn btn-primary" type="button">Search</button>
                 </form>
+
                 <ul class="navbar-nav ms-3">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Login</a>
+                    <!-- Login Button -->
+                    <li class="nav-item" id="loginButton">
+                        <a class="nav-link" href="/booking-system/admin/auth/login.php">Login</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Profile</a>
+
+                    <!-- Profile Dropdown (Initially empty, will be populated by JavaScript) -->
+                    <li class="nav-item dropdown" id="profileDropdown">
+                        <!-- Profile dropdown will be populated by JavaScript if user is logged in -->
                     </li>
                 </ul>
+
+
             </div>
         </div>
     </nav>
@@ -246,62 +245,180 @@ function loadHotels(hotels) {
     attachBookEventListeners();
 }
 
+
+
 // Function to attach "Book Now" button event listeners
 function attachBookEventListeners() {
     document.querySelectorAll('.book-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            fetch("server/check_login.php")
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.loggedIn) {
-                        alert("You must be logged in to book.");
-                        window.location.href = "/booking-system/admin/auth/login.php";
-                    } else {
-                        // Fetch hotel data attributes from the clicked button
-                        const hotelName = this.getAttribute("data-name");
-                        const hotelId = this.getAttribute("data-id");
-                        const location = this.getAttribute("data-location");
-                        const contact = this.getAttribute("data-contact");
+        button.addEventListener('click', async function () {
+            try {
+                // Check if the user is logged in
+                let response = await fetch("server/check_login.php");
+                let data = await response.json();
 
-                        // Set values in the modal
-                        document.getElementById("hotelName").value = hotelName;
-                        document.getElementById("hotelId").value = hotelId;
-                        document.getElementById("location").value = location;
-                        document.getElementById("contact").value = contact;
+                if (!data.loggedIn) {
+                    alert("You must be logged in to book.");
+                    window.location.href = "/booking-system/admin/auth/login.php";
+                    return;
+                }
 
-                        // Fetch room types for the hotel and populate the dropdown
-                        fetch(`server/get_room_types.php?hotel_id=${hotelId}`)
-                            .then(response => response.json())
-                            .then(roomTypes => {
-                                const roomTypeSelect = document.getElementById("roomType");
-                                roomTypeSelect.innerHTML = ''; // Clear any existing options
-                                
-                                // Add the default "Select Room Type" option
-                                const defaultOption = document.createElement("option");
-                                defaultOption.value = '';
-                                defaultOption.textContent = "Select Room Type";
-                                roomTypeSelect.appendChild(defaultOption);
-                                
-                                // Populate the dropdown with room types
-                                roomTypes.forEach(room => {
-                                    const option = document.createElement("option");
-                                    option.value = room.room_type;
-                                    option.textContent = room.room_type;
-                                    roomTypeSelect.appendChild(option);
-                                });
-                            })
-                            .catch(error => console.error("Error fetching room types:", error));
+                // Fetch hotel data attributes from the clicked button
+                const hotelName = this.getAttribute("data-name");
+                const hotelId = this.getAttribute("data-id");
+                const contact = this.getAttribute("data-contact");
 
-                        // Show the modal using Bootstrap
-                        const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
-                        bookingModal.show();
-                    }
-                })
-                .catch(error => console.error("Error checking login:", error));
+                // Set values in the modal (Check if elements exist before setting values)
+                const hotelNameInput = document.getElementById("hotelName");
+                const hotelIdInput = document.getElementById("hotelId");
+                const locationInput = document.getElementById("location");
+                const contactInput = document.getElementById("contact");
+
+                if (hotelNameInput) hotelNameInput.value = hotelName;
+                if (hotelIdInput) hotelIdInput.value = hotelId;
+                if (contactInput) contactInput.value = contact;
+
+                // Fetch and populate room types
+                await fetchRoomTypes(hotelId);
+
+                // Show the modal using Bootstrap
+                const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+                bookingModal.show();
+
+            } catch (error) {
+                console.error("Error:", error);
+            }
         });
     });
 }
 
+
+// Function to fetch and populate room types
+async function fetchRoomTypes(hotelId) {
+    try {
+        let response = await fetch(`server/get_room_types.php?hotel_id=${hotelId}`);
+        let roomTypes = await response.json();
+
+        const roomTypeSelect = document.getElementById("roomType");
+        if (!roomTypeSelect) {
+            console.error("Error: Room Type select element not found!");
+            return;
+        }
+
+        roomTypeSelect.innerHTML = ''; // Clear previous options
+
+        // Default "Select Room Type" option
+        const defaultOption = document.createElement("option");
+        defaultOption.value = '';
+        defaultOption.textContent = "Select Room Type";
+        roomTypeSelect.appendChild(defaultOption);
+
+        // Populate dropdown with room types
+        roomTypes.forEach(room => {
+            const option = document.createElement("option");
+            option.value = room.id; // Use room ID for backend processing
+            option.textContent = `${room.room_type} - $${room.price}`;
+            roomTypeSelect.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error("Error fetching room types:", error);
+    }
+}
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("JavaScript loaded!");
+
+    const bookingForm = document.getElementById("bookingForm");
+
+    if (bookingForm) {
+        bookingForm.addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent default form submission
+            handleBooking(this); // Call the booking function
+        });
+    } else {
+        console.error("Error: Booking form not found!");
+    }
+});
+
+// Function to handle the booking submission
+async function handleBooking(form) {
+    const formData = new FormData(form);
+
+    try {
+        let response = await fetch("server/insert_booking.php", {
+            method: "POST",
+            body: formData,
+        });
+
+        let text = await response.text(); // Get raw response
+        console.log("Raw response:", text); // Debugging
+
+        let data = JSON.parse(text);
+
+        if (data.success) {
+            // Close the modal
+            const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+            bookingModal.hide();
+
+            // Show success message
+            alert("Booking Successful!");
+            window.location.reload(); // Optionally reload the page to show the updated data
+        } else {
+            alert("Booking Failed: " + data.message); // Show error message if any
+        }
+
+    } catch (error) {
+        console.error("Error booking:", error);
+    }
+}
+
+// check login 
+document.addEventListener("DOMContentLoaded", function () {
+    checkLoginStatus();
+});
+
+function checkLoginStatus() {
+    fetch('server/show_info.php')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Login status data:", data);
+            updateNavbar(data);
+        })
+        .catch(error => console.error('Error checking login status:', error));
+}
+
+function updateNavbar(data) {
+    const loginButton = document.getElementById("loginButton");
+    const profileDropdown = document.getElementById("profileDropdown");
+
+    if (data.loggedIn) {
+        loginButton.style.display = 'none';
+        profileDropdown.innerHTML = `
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="${data.user_image}" alt="Profile" class="rounded-circle border border-light shadow-sm" width="40" height="40">
+                    <span class="fw-semibold">${data.username}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="profile.php">
+                        <i class="bi bi-person-circle"></i> My Profile</a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="settings.php">
+                        <i class="bi bi-gear"></i> Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center gap-2 text-danger" href="/booking-system/admin/auth/action_logout.php">
+                        <i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                </ul>
+            </div>
+        `;
+    } else {
+        loginButton.style.display = 'block';
+        profileDropdown.innerHTML = '';
+    }
+}
 
 
 
@@ -327,7 +444,6 @@ function attachBookEventListeners() {
                         <input type="text" class="form-control shadow-sm" id="hotelName" name="hotelName" readonly>
                     </div>
 
-
                     <!-- Room Type -->
                     <div class="mb-3">
                         <label for="roomType" class="form-label text-muted">Room Type</label>
@@ -336,18 +452,6 @@ function attachBookEventListeners() {
                         </select>
                     </div>
 
-
-                    <!-- Location -->
-                    <div class="mb-3">
-                        <label for="location" class="form-label text-muted">Location</label>
-                        <input type="text" class="form-control shadow-sm" id="location" name="location" readonly>
-                    </div>
-
-                    <!-- Contact -->
-                    <div class="mb-3">
-                        <label for="contact" class="form-label text-muted">Contact</label>
-                        <input type="text" class="form-control shadow-sm" id="contact" name="contact" readonly>
-                    </div>
 
                     <!-- Check-in Date -->
                     <div class="mb-3">

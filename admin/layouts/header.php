@@ -98,7 +98,12 @@ if ($user->num_rows > 0) {
                     </li>
 
 
-
+                    <li class="sidebar-item <?php echo $page == 'booking' ? 'active' : ''; ?>">
+                        <a class="sidebar-link" href="<?php echo $burl . "/admin/bookings/index.php"?>">
+                        <i class="fa-solid fa-calendar-check align-middle"></i> <span
+                                class="align-middle">Booking</span>
+                        </a>
+                    </li>
 
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="pages-sign-up.html">
