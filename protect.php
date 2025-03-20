@@ -16,7 +16,7 @@ if (!isset($_SESSION['login']) || $_SESSION['login'] !== true) {
 
 // Protect admin folder (only allow PermissionID 1 or 2)
 function protect_admin_folder() {
-    if (!isset($_SESSION['role_id']) || ($_SESSION['role_id'] !== "1" && $_SESSION['role_id'] !== "2")) {
+    if (!isset($_SESSION['role_id']) || ($_SESSION['role_id'] !== 1 && $_SESSION['role_id'] !== 2)) {
         header("Location: /booking-system");
         exit();
     }
@@ -24,12 +24,12 @@ function protect_admin_folder() {
 
 
 
-// Protect guest folder (only guests with PermissionID = 3)
-function protect_guest_folder() {
-    if (isset($_SESSION['role_id']) && $_SESSION['role_id'] !== "3") {
-        header("Location: /booking-system/admin/auth/login.php");
-        exit();
-    }
-}
+// // Protect guest folder (only guests with PermissionID = 3)
+// function protect_guest_folder() {
+//     if (isset($_SESSION['role_id']) && $_SESSION['role_id'] !== "3") {
+//         header("Location: /booking-system/admin/index.php");
+//         exit();
+//     }
+// }
 
 ?>
