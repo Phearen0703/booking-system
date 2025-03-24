@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 12, 2025 at 10:26 AM
+-- Generation Time: Mar 24, 2025 at 08:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -37,6 +37,13 @@ CREATE TABLE `bookings` (
   `status` enum('pending','confirmed','canceled') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `bookings`
+--
+
+INSERT INTO `bookings` (`id`, `user_id`, `hotel_id`, `room_id`, `check_in`, `check_out`, `status`, `created_at`) VALUES
+(1, 2, 1, 1, '2025-03-20', '2025-03-21', 'pending', '2025-03-20 04:36:42');
 
 -- --------------------------------------------------------
 
@@ -92,21 +99,18 @@ CREATE TABLE `hotels` (
   `description` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `owner_id` int(11) NOT NULL,
-  `location_id` int(11) NOT NULL
+  `location_id` int(11) NOT NULL,
+  `image` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `hotels`
 --
 
-INSERT INTO `hotels` (`id`, `name`, `description`, `created_at`, `owner_id`, `location_id`) VALUES
-(1, 'Sokha Phnom Penh Hotel', 'A luxury 5-star hotel with riverfront views.', '2025-03-06 08:34:30', 0, 1),
-(2, 'Angkor Paradise Hotel', 'A classic hotel near Angkor Wat.', '2025-03-06 08:34:30', 0, 2),
-(3, 'Independence Hotel', 'A beachfront resort in Sihanoukville.', '2025-03-06 08:34:30', 0, 3),
-(4, 'Classy Hotel & Spa', 'A modern hotel in Battambang.', '2025-03-06 08:34:30', 0, 4),
-(5, 'Kampot Riverside Hotel', 'A riverside hotel with scenic views.', '2025-03-06 08:34:30', 0, 5),
-(6, 'Test1', 'lorem post', '2025-03-06 21:27:23', 4, 6),
-(7, 'Test2', 'sdfsfsdfsdfsd', '2025-03-12 02:22:43', 8, 1);
+INSERT INTO `hotels` (`id`, `name`, `description`, `created_at`, `owner_id`, `location_id`, `image`) VALUES
+(1, 'Angkor Paradise Hotel', 'A luxurious hotel near Angkor Wat.', '2025-03-19 22:02:49', 1, 11, '333.jpg'),
+(2, 'Sokha Phnom Penh Hotel', 'A 5-star hotel with a riverfront view.', '2025-03-19 22:15:01', 1, 10, '1742444101_87178452.jpg'),
+(3, 'Golden Temple Hotel', 'A boutique hotel with Khmer-style design.', '2025-03-19 22:16:54', 1, 11, '1742444214_GTH.jpg');
 
 -- --------------------------------------------------------
 
@@ -127,26 +131,11 @@ CREATE TABLE `hotel_rooms` (
 --
 
 INSERT INTO `hotel_rooms` (`id`, `hotel_id`, `room_type`, `price`, `availability`) VALUES
-(16, 1, 'Deluxe Room', 120.00, 5),
-(17, 1, 'Suite Room', 180.00, 2),
-(18, 2, 'Standard Room', 80.00, 10),
-(19, 2, 'Family Room', 150.00, 4),
-(20, 3, 'Sea View Room', 200.00, 3),
-(21, 3, 'Bungalow', 250.00, 2),
-(22, 4, 'Superior Room', 90.00, 8),
-(23, 4, 'Executive Room', 140.00, 3),
-(24, 5, 'Riverside View Room', 110.00, 6),
-(25, 5, 'Garden Bungalow', 160.00, 2),
-(28, 1, 'Deluxe Room', 100.00, 0),
-(29, 1, 'Standard Room', 80.00, 0),
-(30, 2, 'Deluxe Room', 100.00, 0),
-(31, 2, 'Standard Room', 80.00, 0),
-(32, 6, 'Deluxe Room', 100.00, 0),
-(33, 6, 'Standard Room', 80.00, 0),
-(34, 1, 'Deluxe Room', 500.00, 1),
-(35, 4, 'Deluxe Room', 300.00, 0),
-(36, 7, 'Bungalow', 10.00, 1),
-(37, 7, 'Deluxe Room', 20.00, 1);
+(1, 1, 'Tween Bet', 500.00, 1),
+(2, 1, 'Suite Room', 600.00, 1),
+(3, 1, 'New Room', 200.00, 1),
+(4, 2, 'Suite Room', 500.00, 1),
+(5, 3, 'Suite Room', 300.00, 1);
 
 -- --------------------------------------------------------
 
@@ -241,6 +230,26 @@ INSERT INTO `roles` (`id`, `role_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `rooms`
+--
+
+CREATE TABLE `rooms` (
+  `id` int(11) NOT NULL,
+  `room_name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `rooms`
+--
+
+INSERT INTO `rooms` (`id`, `room_name`) VALUES
+(2, 'Tween Bet'),
+(3, 'Suite Room'),
+(4, 'New Room');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sessions`
 --
 
@@ -274,11 +283,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `first_name`, `last_name`, `contact`, `user_name`, `password`, `role_id`, `photo`, `created_at`) VALUES
-(4, 'Choub', 'Phearen', '0964613125', 'test3', '$2y$10$tFPdXrMjpru6D6Uw.z9CkughVkS/ArWKKe6/WaPsYfXetZLgK/hX.', 3, '1741230579_man-7796384_640.jpg', '2025-03-06 03:09:39'),
-(5, 'Choub', 'Phearen', '0964613125', 'test4', '$2y$10$FKD.3M5XkxfkenGhzb4fQeiA9HH1FGK1czQwiz5NV0.ViqC287/Pi', 3, '1741230620_man-7796384_640.jpg', '2025-03-06 03:10:20'),
-(6, 'Choub', 'Phearen', '0964613125', 'test5', '$2y$10$qBmnRzVnmWEvqEruEJi.6..VqoJ964Qx6zow8TzVk8o0e/sL9n3lK', 3, '1741230657_man-7796384_640.jpg', '2025-03-06 03:10:57'),
-(7, 'Choub', 'Phearen', '0964613125', 'test6', '$2y$10$B8R7V6Uyb.4CZaX0P/qVJ.xmfCOp/TqrDvQou3qa5403rWnux.xB2', 3, '1741230886_man-7796384_640.jpg', '2025-03-06 03:14:46'),
-(8, 'Choub', 'Phearen', '0964613125', 'phearen', '1', 3, '1741251034_man-7796384_640.jpg', '2025-03-07 01:21:14');
+(1, 'choub', 'phearen', '0964613125', 'phearen', '$2y$10$isDHDSgrUF4cU0XRMpjJauMWjkAfeS/xm0MI6kfM/cSgGNQESUVv.', 1, '1742441306_user-3296.png', '2025-03-20 03:28:38'),
+(2, 'customer', '1', '010101010', 'customer', '$2y$10$H9/iPZD9/yEnxT2X82a35.L3yVRvfyb1dkTwTVY5NGcAbagFudlm2', 3, '1742442574_user-3296.png', '2025-03-20 03:49:34');
 
 --
 -- Indexes for dumped tables
@@ -357,6 +363,12 @@ ALTER TABLE `roles`
   ADD UNIQUE KEY `role_name` (`role_name`);
 
 --
+-- Indexes for table `rooms`
+--
+ALTER TABLE `rooms`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `sessions`
 --
 ALTER TABLE `sessions`
@@ -379,7 +391,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `cities`
@@ -397,13 +409,13 @@ ALTER TABLE `districts`
 -- AUTO_INCREMENT for table `hotels`
 --
 ALTER TABLE `hotels`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `hotel_rooms`
 --
 ALTER TABLE `hotel_rooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `locations`
@@ -436,6 +448,12 @@ ALTER TABLE `roles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `rooms`
+--
+ALTER TABLE `rooms`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `sessions`
 --
 ALTER TABLE `sessions`
@@ -445,7 +463,7 @@ ALTER TABLE `sessions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
